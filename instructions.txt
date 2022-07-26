@@ -1,0 +1,835 @@
+ARQUIVOS DE SERVIDOR
+______
+PHP-ZP - MÓDULO 36 - LOJA VIRTUAL 2.0
+AULA 01 - LEVANTAMENTO DE REQUISITOS
+______
+
+Requisitos para a Loja Virtual 2.0
+
+- Sistema de busca
+- Sistema multi-linguagem(i18n)
+- Área para usuário acompanhar pedidos
+- Carrinho de compras
+- Categorização dos produtos
+- Características específicas dos produtos
+- Filtro latera de produtos
+- Widgets de produtos - são áreas específicas do site
+- Staring dos produtos - estrelas
+- Integração Mailchimp - serviço de email
+- Página estática
+- Integração à meios de pagamento
+    - Pagseguro
+    - Paypal
+    - Boleto direto
+    - MercadoPago
+
+______
+PHP-ZP - MÓDULO 36 - LOJA VIRTUAL 2.0
+AULA 02 - CRIAÇÃO DE BANCO DE DADOS (1/2)
+______
+
+banco de dados = bony_nova_loja
+tabela categories
+    - id - chave primária e auto-increment unsigned int 11
+    - sub - int 11 , pode ser nulo
+    - name - varchar 100, não permite nulo 
+
+tabela brands
+    - id - chave primária e auto-increment unsigned int 11
+    - name - varchar 100, não permite nulo 
+
+tabela products
+    - id - chave primária e auto-increment unsigned int 11
+    - id_category - int 11, não permite nulo
+    - id_brand - int 11, não permite nulo
+    - name - varchar 100, não permite nulo
+    - description - text, pode ser nulo
+    - stock - int 11, não permite nulo
+    - price - float, não permite nulo
+    - price_from - float, não permite nulo
+    - rating - float, não permite nulo
+    - featured - tinyint 1, não permite nulo
+    - sale - tinyint 1, não permite nulo
+    - bestseller - tinyint 1, não permite nulo
+    - new_product - tinyint 1, não permite nulo
+    - options - varchar 200, pode ser nulo
+
+______
+PHP-ZP - MÓDULO 36 - LOJA VIRTUAL 2.0
+AULA 03 - CRIAÇÃO DE BANCO DE DADOS (2/2)
+______
+
+tabela options - auxiliar de products
+    - id - chave primária e auto-increment unsigned int 11
+    - name - varchar 100, não permite nulo 
+        1 Cor
+        2 Tamanho
+        3 Memória RAM
+        4 Polegadas
+
+em products options os valores serão separados por vírgulas quais opções terão
+
+tabela products_options
+    - id - chave primária e auto-increment unsigned int 11
+    - id_product - int 11, não permite nulo
+    - id_option - int 11, não permite nulo
+    - p_value - varchar 100, não permite nulo
+
+tres tabelas relacionadas
+    - em products quais opções o produto tem     
+    - em options quais são as opções que existem no sistema
+    - em products_options a relação entre uma e outra
+
+tabela products_images
+    é a lista de imagens do produto específico
+    fazendo dessa forma separada o número de imagens pode ser infinita
+    se a coluna images fosse na tabela products
+    o número de imagens seria a quantidade de colunas images criada
+
+tabela products_images
+    - id - chave primária e auto-increment unsigned int 11
+    - id_product - int 11, não permite nulo
+    - url - varchar 50, não permite nulo
+
+em products rating será a média das votações
+
+tabela rates
+    - id - chave primária e auto-increment unsigned int 11
+    - id_product - int 11, não permite nulo   
+    - id_user - int 11, não permite nulo   
+    - date_rated - datetime, não permite nulo
+    - points - int 11, não permite nulo   
+    - comments - text
+
+ tabela user'
+    - id - chave primária e auto-increment unsigned int 11   
+    - email - varchar 100, não permite nulo
+    - password - varchar 32, não permite nulo
+
+tabela pages 
+    - id - chave primária e auto-increment unsigned int 11   
+    - title - varchar 100, não permite nulo
+    - body - text, não permite nulo
+
+VENDAS
+
+o sistema só vai aprovar uma compra como pago
+quando o valor pago coincidir com o valor da compra
+
+tabela purchases
+    - id - chave primária e auto-increment unsigned int 11
+    - id_user - int 11, não permite nulo   
+    - id_coupon - int 11, pode ser nulo
+    - total_amount float, não permite nulo
+    - payment_type - int 11, pode ser nulo
+    - payment_status - int 11, não permite nulo
+
+tabela coupons
+    - id - chave primária e auto-increment unsigned int 11
+    - name - varchar 100, não permite nulo
+    - coupon_type int 11, não permite nulo
+    - coupon_value float, não permite nulo
+
+tabela purchases_products
+    - id - chave primária e auto-increment unsigned int 11
+    - id_purchase - int 11, não permite nulo
+    - id_product - int 11, não permite nulo
+    - quantity - int 11, não permite nulo
+
+tabela purchases_transactions
+    - id - chave primária e auto-increment unsigned int 11
+    - id_purchase - int 11, não permite nulo
+    - amount - float
+    - transaction_code - int 11, pode ser nulo 
+
+______
+PHP-ZP - MÓDULO 36 - LOJA VIRTUAL 2.0
+AULA 04 - ESTRUTURA INICIAL DO PROJETO
+______
+
+TEMPLATE INICIAL DA LOJA
+
+BAIXAR TEMPLATE
+
+alterar htaccess e config de conexão e banco de dados
+
+______
+PHP-ZP - MÓDULO 36 - LOJA VIRTUAL 2.0
+AULA 05 - SISTEMA MULTI-LINGUAGEM (1/2)
+______
+
+primeiro passo qual será a linguagem padrão, ou seja, qual idioma
+porque quando entra no site a primeira vez tem a padrão depois o usuario troca
+
+todas as configurações ficam no arquivo config
+
+fora do {} antes de $db na linha 22
+
+$config['default_lang'] = 'en';
+para português 'pt-br'
+
+para ter acesso às linguagens
+para isso vai inserir uma classe no core controller
+
+padrão para o dicionario
+uma palavra toda em caixa alta que define a tradução
+
+os dicionários ficam em uma pasta chamada lang
+dentro da pasta lang estão os dicionários com extensão .ini
+criar arquivo en.ini, pt
+
+a configuração padrão
+HOME = "Home"
+sem ponto e vírgulas
+1 por linha
+
+pode não usar seção ou
+pode separar por seções do site topo ...
+[Topo]
+[Rodape]
+
+dentro da pasta core criar Language.php
+
+<?php
+class Language {}
+
+linguagem padrão
+linguagem que o usuário escolheu
+construtor saber qual linguagem
+
+<?php
+class Language {
+
+    private $l; //linguagem padrão
+    private $ini; //variável que armazena o dicionário
+
+    public function __construct() {
+        global $config;
+        $this->l = $config['default_lang']; //arquivo config
+
+        if(!empty($_SESSION['lang'])&& file_exists('lang/'.$_SESSION['lang'].'.ini')) { //se usuário definir e se a linguagem existe
+            $this->l = $_SESSION['lang']; // substituir pela definição
+        }
+
+        $this->ini = parse_ini_file('lang/'.$this->l.'.ini');//carrega um arquivo ini e transforma em array
+    }
+
+    public function get($word, $return = false) {// tradução: parâmetro 1: a palavra, parâmetro 2: retorno (manipulação) ou echo (padrão) a palavra traduzida - 
+        $text = $word;//vai verificar se existe a palavra no dic caso não retorna a própria palavra
+
+        if(isset($this->ini[$word])) {//array
+            $text = $this->ini[$word];
+        }
+
+        if ($return) {//verificação de retorno
+            return $text;
+        } else {
+            echo $text;
+        }
+    }
+
+}
+
+para carregar essa página no Core/Controller.php
+na linha 5 criar uma variável protegida
+protected $lang;
+
+no __construct linha 9
+$this->lang = new Language(); //carrega a class criada
+
+em views/template.php substitui a frase pelo comando na linha 15
+<?php $this->lang->get("HOME"); ?>
+
+<li class="active"><a href="<?php echo BASE_URL; ?>"><?php $this->lang->get("HOME"); ?></a></li>
+
+
+______
+PHP-ZP - MÓDULO 36 - LOJA VIRTUAL 2.0
+AULA 06 - SISTEMA MULTI-LINGUAGEM (2/2)
+______
+
+em views/template.php substitui a frase pelo comando na linha 16
+<?php $this->lang->get("CONTACT"); ?>
+
+na linha 20
+em English
+<?php $this->lang->get("LANGUAGE"); ?>
+
+LINHA 28
+<?php $this->lang->get("LOGIN"); ?>
+
+LINHA 44
+Procure um item
+<?php $this->lang->get("SEARCHFORANITEM"); ?>
+
+LINHA 46 
+Todas as Categorias
+<?php $this->lang->get("ALLCATEGORIES"); ?>
+
+LINHA 59
+Seu Carrinho
+<?php $this->lang->get("CART"); ?>
+
+LINHA 73
+Selecione uma Categorias
+<?php $this->lang->get("SELECTCATEGORY"); ?>
+
+LINHA 91
+Filtro
+<?php $this->lang->get("FILTER"); ?>
+
+LINHA 97
+Featured Products
+<?php $this->lang->get("FEATUREDPRODUCTS"); ?>
+
+LINHA 121
+On sale products
+<?php $this->lang->get("ONSALEPRODUCTS"); ?>
+
+Linha 129
+Top Rated Products
+<?php $this->lang->get("TOPRATEDPRODUCTS"); ?>
+
+Linha 142
+Subscribe to our newsletter
+<?php $this->lang->get("SUBSCRIBETEXT"); ?>
+
+Linha 143
+Subscribe button
+<?php $this->lang->get("SUBSCRIBEBUTTON"); ?>
+
+Linha 160
+Categories
+<?php $this->lang->get("CATEGORIES"); ?>
+
+Linha 171
+Information
+<?php $this->lang->get("INFORMATION"); ?>
+
+Linha 200
+All Rights Reserved
+<?php $this->lang->get("ALLRIGHTSRESERVED"); ?>
+
+
+em en.ini 
+
+LANGUAGE = "English"
+HOME = "Home"
+CONTACT = "Contact"
+LOGIN = "Login"
+SEARCHFORANITEM = "Search for an Item"
+ALLCATEGORIES = "All Categories"
+CART = "Cart"
+SELECTCATEGORY = "Select a Category"
+FILTER = "Filter"
+FEATUREDPRODUCTS = "Featured Products"
+ONSALEPRODUCTS = "On-Sale Products"
+TOPRATEDPRODUCTS = "Top Rated Products"
+SUBSCRIBETEXT = "Subscribe to our newsletter"
+SUBSCRIBEBUTTON = "Subscribe"
+CATEGORIES = "Categories"
+INFORMATION = "Information"
+ALLRIGHTSRESERVED = "All rights reserved"
+
+
+
+em pt-br.ini
+
+LANGUAGE = "Português"
+HOME = "Início"
+CONTACT = "Contato"
+LOGIN = "Login"
+SEARCHFORANITEM = "Pesquise um Item"
+ALLCATEGORIES = "Todas as Categorias"
+CART = "Carrinho"
+SELECTCATEGORY = "Selecione uma Categoria"
+FILTER = "Filtro"
+FEATUREDPRODUCTS = "Productos em Destaque"
+ONSALEPRODUCTS = "Productos Promocionais"
+TOPRATEDPRODUCTS = "Melhores Productos"
+SUBSCRIBETEXT = "Inscreva-se na nossa newsletter"
+SUBSCRIBEBUTTON = "Inscrever"
+CATEGORIES = "Categorias"
+INFORMATION = "Informações"
+ALLRIGHTSRESERVED = "Todos os direitos reservados"
+
+para selecionar a linguagem pelo botão para trocar 
+na pasta controller criar langController.php
+
+<?php
+class langController extends controller {
+    
+    private $user;
+
+    public function __construct() {
+        parent::__construct();
+    }
+
+    public function index() {}
+
+    public function set($lang) {//seleção da language pelo botão
+        $_SESSION['lang'] = $lang;
+        header("Location: ".BASE_URL);
+    }
+}
+
+PARA SER USADO COMO LINK NO TEMPLATE NA LINHA 23 DELETA #
+"<?php echo BASE_URL;?>lang/set/en"
+
+na linha 24 DELETA#
+"<?php echo BASE_URL;?>lang/set/pt-br"
+
+em home.php
+<?php $this->lang->get("HOMECONTENT); ?>
+
+no homeController.php na linha 13
+$dados['frase'] = $this->lang->get('SUBSCRIBETEXT', true); // o true para retorna não echo
+
+em home.php
+pular linhas<br/><br/>
+
+<?php echo $frase; ?>
+
+
+______
+PHP-ZP - MÓDULO 36 - LOJA VIRTUAL 2.0
+AULA 07 - CRIANDO A HOME (1/4)
+______
+
+o objetivo desta aula listagem com paginação e filtros
+na tabela brands preencher campos para testar
+LG, Samsung, AOC
+
+na tabela categoria insere dado monitor
+
+na tabela produtos insere
+1, 1, Monitor 21 polegadas, alguma descrição do produto, 10 
+
+baixar dados executar no banco de dados ok
+
+para inserir as imagens no projeto
+quando houver imagens ou arquivos que o usuário pode enviar
+
+CRIA A PASTA media e dentro de media criar pasta products
+colar imagens selecionadas
+
+em home.php remover conteúdo
+
+e em homeController excluir
+        $dados['frase'] = $this->lang->get('SUBSCRIBETEXT', true);
+
+para separar o código direitinho de acordo com o MVC o ideal
+é criar um model responsável pelos produtos
+dentro da pasta model criar products.php
+<?php
+class Products extends model {}
+
+e agora criar para pegar as informações dos produtos
+
+a primeira coisa que precisa é um método para puxar as informações da tabela
+inicialmente os produtos são mostrados como foram adicionados
+o método é 
+public function getList()
+o getList faz a listagem dos produtos 
+
+$sql = "SELECT * FROM products"
+
+products é a tabela
+$sql = $this->db->query($sql);
+
+e a verificação se tem algum produto
+
+if($sql->rowCount() > 0) {}
+
+antes de tudo criar um array de retorno
+e no final retorna o array
+
+se tiver algum produto o sistema adiciona no array
+se não tiver nenhum produto retorna array vazio
+
+com essas instruções em products.php pode usar o homeController
+em homeController
+na linha 13 dentro da public function index
+depois de $dados = array();
+
+$products = new Products();
+$dados['list'] = $products->getList();
+
+para rodar ir em home.php
+<?php print_r($list);
+e o retorno será os produtos
+
+testar para ver se está funcionando retornando um array vazio
+
+para armazenar as informações dos produtos
+em products.php
+preencher o array dentro do if
+
+$array = $sql->fetchAll();
+
+conferir retorno
+
+para colocar as informações completas criar um model responsável pelas marcas
+criar model brands.php
+
+<?php
+class Brands extends model {
+    
+}
+esse model foi criado porque em products o array traz o id da marca
+e o que tem que mostrar é o nome da marca
+em products.php dentro do if o array precisa de informações complementares
+que é trazida pelo
+
+foreach($array as $key => $item) {}
+
+tem duas formas de fazer isso
+a decisão depende do volume do sistema
+
+com uma subquery com no $sql inicial
+
+$sql = "SELECT *, 
+    (select brands.name from brands 
+    where brands.id = products.id_brand) as brand_name, 
+    (select categories.name from categories 
+    where categories.id = products.id_category) as category_name 
+    FROM products";
+
+o código acima não é recomendado 
+na subquery se houver mais de um resultado dá erro
+
+______
+PHP-ZP - MÓDULO 36 - LOJA VIRTUAL 2.0
+AULA 08 - CRIANDO A HOME (2/4)
+______
+
+pelo model a informação fica 100% separada e dá maior Controle
+em products.php depois de foreach
+
+ $brands = new Brands();
+
+        foreach($array as $key => $item) {
+            
+        }
+    }
+
+dentro de foreach 
+criar uma chave nova para o produto específico
+
+
+$array[$key]['brand_name] = $brands->getNameById($item['id_brand']);
+
+e criar o metodo getNameById em Brands.php
+
+ public function getNameById($id) {
+
+        $sql = "SELECT name FROM brands WHERE id = :id";
+        $sql = $this->db->prepare($sql);
+        $sql->bindValue(":id", $id);
+        $sql->execute();
+
+        if($sql->rowCount() > 0){
+            $data = $sql->fetch();
+
+            return $data['name'];
+        } else {
+            return'';
+        }
+    }
+}
+
+essa informações são pegas na chave criada no foreach do products.php
+
+para as imagens criar dentro do foreach de products.php
+
+$array[$key]['images'] = $this->getImagesByProductId($item['id']);
+
+para criar o método getImagesByProductId na linha 29 de products.php
+
+ public function getImagesByProductId($id) {
+        $array = array();
+
+        $sql = "SELECT url FROM products_images WHERE id_product = :id";
+        $sql = $this->db->prepare($sql);
+        $sql->bindValue(":id", $id);
+        $sql->execute();
+
+        if($sql->rowCount() > 0){
+            $array = $sql->fetchAll();
+        }
+             return $array;
+        }
+ PARA CRIAR O LAYOUT RESPONSIVO EM HOME.PHP
+ no layout original mostra 3 itens e no celular só um
+
+ deleta tudo de home.php e insere
+
+ <div class="row">
+    <div class="col-sm-4">..1.</div>
+    <div class="col-sm-4">..2.</div>
+    <div class="col-sm-4">..3.</div>
+</div>
+
+conferir se funciona
+
+como o layout vai ser padrão e para criar uma única vez será criado um view 
+para esse bloco de código
+criar um view product_item.php
+<div class="product_item">;;;</div>
+
+e para chamar esse view em home.php dentro da div na linha 4
+
+<?php $this->loadView('product_item', array()); ?>
+
+então home.php fica:
+
+<div class="row">
+    <div class="col-sm-4">
+        <?php $this->loadView('product_item', array()); ?>
+    </div>
+    <div class="col-sm-4">
+        <?php $this->loadView('product_item', array()); ?>
+    </div>
+    <div class="col-sm-4">
+        <?php $this->loadView('product_item', array()); ?>
+    </div>
+</div>
+
+em product_item.php
+para criar a imagem
+<div class="product_item">
+    <div class="product_tags" ></div>
+    <div class="product_image" >
+            <img src="<?php echo BASE_URL; ?>media/products/1.jpg" width="100%"  />
+    </div>
+    <div class="product_name" >Monitor XXXXXX</div>
+    <div class="product_brand" >SONY</div>
+    <div class="product_price_from" >R$ xxxx</div>
+    <div class="product_price_from" >R$ xxxx</div>
+</div>
+as tags de novidade ficam em cima da foto em product_item
+______
+PHP-ZP - MÓDULO 36 - LOJA VIRTUAL 2.0
+AULA 09 - CRIANDO A HOME (3/4)
+______
+ESTRUTURA PRONTA abrir style.css
+
+alteração do css partindo da estrutura do product_item
+em product_item na linha 2 inserir link do produto
+<a href=""></a>
+
+<div class="product_item">
+    <a href="">
+        <div class="product_tags" >TAG</div>
+        <div class="product_image" >
+            <img src="<?php echo BASE_URL; ?>media/products/1.jpg" width="100%"  />
+        </div>
+        <div class="product_name" >Monitor XXXXXX</div>
+        <div class="product_brand" >SONY</div>
+        <div class="product_price_from" >R$ xxxx</div>
+        <div class="product_price" >R$ xxxx</div>
+    </a>
+</div>
+
+.product_item a {
+	text-decoration: none;
+	display:block;
+}
+o block permite que mude o fundo 
+em product_item.php inserir como última div
+
+<div style="clear:both"></div>
+
+TAGS
+ <div class="product_tags" >
+            <div class="product_tag product_tag_red" >SALE</div>
+            <div class="product_tag product_tag_green" >BESTSELLER</div>
+            <div class="product_tag product_tag_blue" >NEW</div>
+        </div>
+A ESTRUTURA DE LINHA COM 3 COLUNAS É BOOTSTRAP
+ <div class="row">
+ <div class="col-sm-4">
+É PRECISO CRIAR UMA ESTRUTURA DE REPETIÇÃO
+É PRECISO QUE A CADA 3 COLUNAS
+FECHE A LINHA ANTERIOR
+E ABRA UMA NOVA LINHA
+
+PARA UTILIZAR AS INFORMAÇÕES CORRETAS DO BANCO DE DADOS
+SÃO CRIADAS AS VARIÁVEIS EM PRODUCT_ITEM.PHP E PASSA AS VARIÁVEIS DENTRO DO ARRAY 
+em HOME.PHP 
+
+<div class="row" >
+<?php
+$a = 0;
+?>
+<?php foreach($list as $product_item): ?>
+    <div class="col-sm-4">
+        <?php $this->loadView('product_item', array()); ?>
+    </div>
+    <?php
+    if($a >= 2) {
+        $a = 0;
+        echo '</div><div class="row">';
+    } else {
+        $a++;
+    }
+    ?>
+<?php endforeach; ?>
+</div>
+
+E PRODUCT_ITEM.PHP
+<div class="product_item">
+	<a href="">
+		<div class="product_tags">
+			<?php if($sale == '1'): ?>
+			<div class="product_tag product_tag_red"><?php echo $this->lang->get('SALE') ?></div>
+			<?php endif; ?>
+			<?php if($bestseller == '1'): ?>
+			<div class="product_tag product_tag_green"><?php echo $this->lang->get('BESTSELLER') ?></div>
+			<?php endif; ?>
+			<?php if($new_product == '1'): ?>
+			<div class="product_tag product_tag_blue"><?php echo $this->lang->get('NEW') ?></div>
+			<?php endif; ?>
+		</div>
+		<div class="product_image">
+			<img src="<?php echo BASE_URL; ?>media/products/<?php echo $images[0]['url']; ?>" width="100%" />
+		</div>
+		<div class="product_name"><?php echo $name; ?></div>
+		<div class="product_brand"><?php echo $brand_name; ?></div>
+		<div class="product_price_from"><?php
+			if($price_from != '0') {
+				echo 'R$ '.number_format($price_from, 2, ',', '.');
+			}
+		?></div>
+		<div class="product_price">R$ <?php echo number_format($price, 2, ',', '.'); ?></div>
+		<div style="clear:both"></div>
+	</a>
+</div>
+
+______
+PHP-ZP - MÓDULO 36 - LOJA VIRTUAL 2.0
+AULA 11 - CRIANDO A PAGINAÇÃO DA HOME
+______
+
+a paginação é construída no getList do homeController e do products.php
+
+de inicio são dois parametros que precisa
+    - inicia a partir de qual item (offset)
+    - limite, quantos itens tem a página
+
+    então em products.php na linha 4
+
+    public function getList($offset = 0, $limit = 10)
+
+    e implementa essa informação na propria query
+
+    na linha 10 depois de FROM  products LIMIT $offset, $limit"; aspas duplas no final
+
+    no homeController para fazer o processo acontecer
+    na linha 15
+
+    $dados['list'] = $products->getList(0,3);
+
+funcionamento ok - testar
+---
+
+para criar a barra de paginação é preciso saber o total de items
+para dividir pelas páginas necessárias
+para saber o total
+
+em homeController para o número de páginas 
+dividir o total pelo limit 
+mas pode dar número quebrado então é necessário
+uma função do php
+
+em homeController depois de $dados...getList na linha 15
+$dados['totalItems'] = $products->getTotal();
+
+ public function index() {
+        $dados = array();
+
+        $products = new Products();
+
+        $offset = 0;
+        $limit = 3;
+
+        $dados['list'] = $products->getList($offset, $limit);
+        $dados['totalItems'] = $products->getTotal();
+        $dados['numberOfPages'] = ceil($dados['totalItems']/$limit);
+
+        $this->loadTemplate('home', $dados);
+    }
+
+em products.php
+criar o getTotal na linha 29 antes de todos public function
+
+public function getTotal() {
+		$sql = "SELECT COUNT(*) as c FROM products";
+		$sql = $this->db->query($sql);
+		$sql = $sql->fetch();
+
+		return $sql['c'];
+	}
+
+a variável numberOfPages no view home.php
+e depois da listagem dos produtos na última linha
+Número de Páginas: <?php echo $numberOfPages; ?>
+
+conferir
+---
+para exibir os quadradinhos com os números em home.php
+
+feito o teste deletar a última linha e inserir o código abaixo
+
+<?php for($q=1;$q<=$numberOfPages;$q++): ?>
+	<div class="paginationItem"><a href=""><?php echo $q; ?></a></div>
+<?php endfor; ?>
+
+no css
+.paginationItem {
+	width: 40px;
+	height: 40px;
+	border:1px solid #DDD;
+	font-size:13px;
+	text-align: center;
+	line-height: 40px;
+	display: inline-block;
+}
+.paginationItem:hover {
+	border: 1px solid #59B210;
+}
+.paginationItem a {
+	display: block;
+	color:#000;
+	text-decoration: none;
+}
+
+esse último para que o click seja em todo quadradinho além do número
+
+--- 
+para criar a variável para identificar  a página atual
+no homeController
+
+na linha 15 antes de $offset
+$currentPage = 1;
+
+na linha 22 adicionar a dados para enviar para o view
+$dados['currentPage'] = $currentPage;
+
+no view home
+substitui na linha 21
+<div class="paginationItem"><a href=""><?php echo $q; ?></a></div>
+
+por 
+	<div class="paginationItem <?php echo ($currentPage==$q)?'pag_active':''; ?> "><a href=""><?php echo $q; ?></a></div>
+
+no css
+.paginationItem:hover,
+.pag_active {
+	border: 1px solid #59B210;
+}
+---
+para fazer o click funcionar
+tem que montar o link em home.php linha 21
+
+<a href="<?php echo BASE_URL; ?>?p=<?php echo $q; ?>"><?php echo $q; ?></a>
