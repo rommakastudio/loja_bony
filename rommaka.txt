@@ -1,3 +1,7 @@
+echo '<pre>';
+        print_r($array);
+        exit;
+
 em sub-itens - divisões gramaticais
 aula 2 associação de tabelas
 

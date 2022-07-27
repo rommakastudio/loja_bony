@@ -833,3 +833,196 @@ para fazer o click funcionar
 tem que montar o link em home.php linha 21
 
 <a href="<?php echo BASE_URL; ?>?p=<?php echo $q; ?>"><?php echo $q; ?></a>
+
+no homeController na linha 19 antes dos $dados
+fazer uma verificação para o envio da página atual
+if(!empty($_GET['p'])) {
+            $currentPage = $_GET['p'];
+        }
+
+--- 
+para a paginação funcionar mesmo a partir do currentPage definir o offset
+no homeController
+na linha 23
+$offset = ($currentPage * $limit) - $limit;
+
+no home.php colocar as 3 úttimas linhas dentro da div e inserir class
+<div class="paginationArea">
+	<?php for($q=1;$q<=$numberOfPages;$q++): ?>
+		<div class="paginationItem <?php echo ($currentPage==$q)?'pag_active':''; ?> "><a href="<?php echo BASE_URL; ?>?p=<?php echo $q; ?>"><?php echo $q; ?></a></div>
+	<?php endfor; ?>
+</div>
+
+no css
+
+.paginationArea{
+	margin-top: 30px;
+}
+
+______
+PHP-ZP - MÓDULO 36 - LOJA VIRTUAL 2.0
+AULA 12 - LISTANDO AS CATEGORIAS E SUB CATEGORIAS (1/2)
+______
+CRIAR filtros
+
+
+css para ajeitar a caixinha do tamanho do botão
+no banco de dados na tabela categorias inserir em dados
+14 Som
+em sub categoria    
+    14 Headphones
+    14 Microfones
+    15 Com Fio
+    15 Sem Fio
+
+---
+criar o Model Categories.php
+<?php
+class Categories extends model {
+    
+}
+
+no homeController para puxar as categorias na linha 14
+$categories = new Categories();
+
+que instancia o model
+e na linha 31 criar dados para utilizar o model criado
+        $dados['categories'] = $categories->getList();
+
+que recebe a lista das categorias
+
+em Categories.php criar o getList
+para fazer a consulta no banco de dados para as subconsutals
+o php não volta uma categoria então tem que fazer a consulta desc
+
+SELECT * FROM categories ORDER BY sub DESC;
+
+para poder organizar as sub categorias e verificar se tem mais em
+Categories.php
+no final
+private function stillNeed($array) {
+    foreach($array as $item) {
+        if(!empty($item['sub'])) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+para aplicar a function stillNeed na linha 16 
+
+
+while ($this->stillNeed($array)) {
+        $this->organizeCategory($array);
+
+e na linha 25 criar a private function organizeCategory
+que recebe um parâmetro mas a mesma variável será alterada
+então será ligada com o & (&$array)
+
+significa que qualquer alteração feita dentro da função 
+vai alterar a própria variável que foi enviada
+
+private function organizeCategory(&$array){
+        foreach($array as $id => $item) {
+            if(isset($array[$item['sub']])) {
+                $array[$item['sub']] ['subs'][$item['id']] = $item;
+                unset($array[$id]);
+                break;
+            }
+        }
+    }
+ então 
+
+Categories.php fica
+
+<?php
+class Categories extends model {
+
+    public function getList() {
+        $array = array();
+
+        $sql = "SELECT * FROM categories ORDER BY sub DESC";
+        $sql = $this->db->query($sql);
+
+        if($sql->rowCount() > 0) {
+            foreach($sql->fetchAll() as $item) {
+                $item['subs'] = array();
+                $array[$item['id']] = $item;
+            }
+
+            while ($this->stillNeed($array)) {
+                $this->organizeCategory($array);
+            }
+
+            }
+
+            echo '<pre>';
+            print_r($array);
+            exit;
+
+        return $array;
+    }
+
+    private function organizeCategory(&$array){
+        foreach($array as $id => $item) {
+            if(isset($array[$item['sub']])) {
+                $array[$item['sub']] ['subs'][$item['id']] = $item;
+                unset($array[$id]);
+                break;
+            }
+        }
+    }
+
+    private function stillNeed($array) {
+        foreach($array as $item) {
+            if(!empty($item['sub'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+}
+
+
+ echo '<pre>';
+    print_r($array);
+    exit;
+
+imprime na tela o código
+depois da verificação deletar do código
+
+______
+PHP-ZP - MÓDULO 36 - LOJA VIRTUAL 2.0
+AULA 13 - LISTANDO AS CATEGORIAS E SUB CATEGORIAS (2/2)
+______
+
+para exibir as categorias no local certo
+no view template.php
+
+criar em views menu_subcategory.php
+
+na linha 75 que apresenta as categorias
+
+<ul class="dropdown-menu">
+								<?php foreach($viewData['categories'] as $cat):?>
+									<li>
+										<a href="<?php echo BASE_URL.'categories/enter/'.$cat['id']; ?>">
+											<?php echo $cat['name']; ?>
+										</a>
+									</li>
+									<?php
+									if(count($cat['subs']) > 0) {
+										$this->loadView('menu_subcategory', array(
+											'subs'=>$cat['subs'],
+											'level' => 1
+										));
+									}
+									?>
+								<?php endforeach;?>
+							</ul>
+
+
+
